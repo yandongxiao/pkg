@@ -14,7 +14,7 @@ func TestNewFileCache(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *fileCache
+		want    *FileCache
 		wantErr bool
 	}{
 		{
@@ -22,7 +22,7 @@ func TestNewFileCache(t *testing.T) {
 			args: args{
 				dir: "/Users/yandongxiao/github/yandongxiao/github-image-proxy/cache",
 			},
-			want: &fileCache{
+			want: &FileCache{
 				cache: sync.Map{},
 				dir:   "/Users/yandongxiao/github/yandongxiao/github-image-proxy/cache",
 			},
