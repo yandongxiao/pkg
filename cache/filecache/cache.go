@@ -3,12 +3,15 @@ package filecache
 import (
 	"crypto/md5"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sync"
 )
+
+var ErrContentEmpty = errors.New("content is empty")
 
 type FileCache struct {
 	cache sync.Map
@@ -27,7 +30,7 @@ func NewFileCache(dir string) (*FileCache, error) {
 }
 
 func (cache *FileCache) Read(filePath string) ([]byte, error) {
-	cacheName := cache.getName(filePath)
+	cacheName := cache.GetName(filePath)
 	if _, ok := cache.cache.Load(cacheName); ok {
 		file, err := os.Open(cache.getCacheFilePath(cacheName))
 		if err != nil {
@@ -37,6 +40,8 @@ func (cache *FileCache) Read(filePath string) ([]byte, error) {
 		content, err := io.ReadAll(file)
 		if err != nil {
 			return nil, err
+		} else if len(content) == 0 {
+			return nil, ErrContentEmpty
 		}
 		return content, nil
 	}
@@ -45,7 +50,7 @@ func (cache *FileCache) Read(filePath string) ([]byte, error) {
 
 // Write the content to a file, and update the cache
 func (cache *FileCache) Write(filePath string, data []byte) error {
-	cacheName := cache.getName(filePath)
+	cacheName := cache.GetName(filePath)
 
 	// write content to file
 	file, err := os.Create(cache.getCacheFilePath(cacheName))
@@ -67,7 +72,7 @@ func (cache *FileCache) getCacheFilePath(cacheName string) string {
 }
 
 // getName get the cache name for a file, we need a way
-func (cache *FileCache) getName(filePath string) string {
+func (cache *FileCache) GetName(filePath string) string {
 	fileMD5 := md5.Sum([]byte(filePath))
 	return base64.URLEncoding.EncodeToString(fileMD5[:])
 }
